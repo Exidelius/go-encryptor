@@ -22,7 +22,7 @@ func NewFieldEncryptor(encryptor interfaces.Encryptor) *FieldEncryptor {
 // HandleFields обрабатывает поля структуры, шифруя или расшифровывая их
 func (h *FieldEncryptor) HandleFields(data interface{}, encrypt bool) (interface{}, error) {
 	val := reflect.ValueOf(data)
-	if val.Kind() != reflect.Ptr || val.Elem().Kind() != reflect.Struct {
+	if val.Elem().Kind() != reflect.Struct {
 		return nil, interfaces.ErrInvalidData
 	}
 

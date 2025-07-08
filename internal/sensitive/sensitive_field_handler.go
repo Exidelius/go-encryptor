@@ -1,7 +1,6 @@
 package sensitive
 
 import (
-	"log/slog"
 	"reflect"
 
 	"github.com/Exidelius/go-encryptor/internal/interfaces"
@@ -22,7 +21,7 @@ func NewFieldEncryptor(encryptor interfaces.Encryptor) *FieldEncryptor {
 // HandleFields обрабатывает поля структуры, шифруя или расшифровывая их
 func (h *FieldEncryptor) HandleFields(data interface{}, encrypt bool) (interface{}, error) {
 	val := reflect.ValueOf(data)
-	if val.Elem().Kind() != reflect.Struct {
+	if val.Kind() != reflect.Ptr || val.Elem().Kind() != reflect.Struct {
 		return nil, interfaces.ErrInvalidData
 	}
 
@@ -35,21 +34,24 @@ func (h *FieldEncryptor) HandleFields(data interface{}, encrypt bool) (interface
 		field := newVal.Elem().Field(i)
 		fieldType := typ.Field(i)
 
-		slog.Info(fieldType.Name)
 		if field.Kind() == reflect.Struct {
-			slog.Info("In a Kind Struct")
-			innerStruct, err := h.HandleFields(field.Interface(), encrypt)
+			fieldPtr := reflect.New(field.Type())
+			fieldPtr.Elem().Set(field)
+
+			innerStruct, err := h.HandleFields(fieldPtr.Interface(), encrypt)
 			if err != nil {
 				return nil, err
 			}
-			field.Set(reflect.ValueOf(innerStruct))
+
+			field.Set(reflect.ValueOf(innerStruct).Elem())
+			continue
+		}
+
+		if fieldType.Tag.Get("encrypted") != "true" {
 			continue
 		}
 
 		if field.Kind() != reflect.String {
-			continue
-		}
-		if fieldType.Tag.Get("encrypted") != "true" {
 			continue
 		}
 

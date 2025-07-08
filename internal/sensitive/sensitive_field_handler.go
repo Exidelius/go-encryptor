@@ -29,7 +29,7 @@ func (h *FieldEncryptor) HandleFields(data interface{}, encrypt bool) (interface
 	newVal := reflect.New(val.Elem().Type())
 	newVal.Elem().Set(val.Elem())
 
-	typ := newVal.Elem().Type()
+	typ := val.Type()
 
 	for i := 0; i < newVal.Elem().NumField(); i++ {
 		field := newVal.Elem().Field(i)

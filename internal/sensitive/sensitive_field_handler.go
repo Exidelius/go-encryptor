@@ -25,36 +25,51 @@ func (h *FieldEncryptor) HandleFields(data interface{}, encrypt bool) (interface
 		return nil, interfaces.ErrInvalidData
 	}
 
+	// Создаём копию структуры
 	newVal := reflect.New(val.Elem().Type())
 	newVal.Elem().Set(val.Elem())
 
-	typ := newVal.Elem().Type()
+	// Обрабатываем поля
+	if err := h.processStruct(newVal.Elem(), encrypt); err != nil {
+		return nil, err
+	}
 
-	for i := 0; i < newVal.Elem().NumField(); i++ {
-		field := newVal.Elem().Field(i)
+	return newVal.Elem().Interface(), nil
+}
+
+// Рекурсивная функция обработки структуры
+func (h *FieldEncryptor) processStruct(v reflect.Value, encrypt bool) error {
+	typ := v.Type()
+
+	for i := 0; i < v.NumField(); i++ {
+		field := v.Field(i)
 		fieldType := typ.Field(i)
 
+		// Обработка вложенных структур
 		if field.Kind() == reflect.Struct {
-			fieldPtr := reflect.New(field.Type())
-			fieldPtr.Elem().Set(field)
-
-			innerStruct, err := h.HandleFields(fieldPtr.Interface(), encrypt)
-			if err != nil {
-				return nil, err
+			if err := h.processStruct(field, encrypt); err != nil {
+				return err
 			}
-
-			field.Set(reflect.ValueOf(innerStruct).Elem())
 			continue
 		}
 
-		if fieldType.Tag.Get("encrypted") != "true" {
+		// Обработка указателей на структуры
+		if field.Kind() == reflect.Ptr && field.Type().Elem().Kind() == reflect.Struct {
+			if field.IsNil() {
+				continue // Пропускаем nil-указатели
+			}
+			if err := h.processStruct(field.Elem(), encrypt); err != nil {
+				return err
+			}
 			continue
 		}
 
-		if field.Kind() != reflect.String {
+		// Пропускаем поля без тега или не-строки
+		if fieldType.Tag.Get("encrypted") != "true" || field.Kind() != reflect.String {
 			continue
 		}
 
+		// Шифрование/дешифрование
 		value := field.String()
 		var result string
 		var err error
@@ -66,11 +81,10 @@ func (h *FieldEncryptor) HandleFields(data interface{}, encrypt bool) (interface
 		}
 
 		if err != nil {
-			return nil, err
+			return err
 		}
 
 		field.SetString(result)
 	}
-
-	return newVal.Elem().Interface(), nil
+	return nil
 }

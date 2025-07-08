@@ -25,7 +25,9 @@ func (h *FieldEncryptor) HandleFields(data interface{}, encrypt bool) (interface
 		return nil, interfaces.ErrInvalidData
 	}
 
-	val = val.Elem()
+	val = reflect.New(val.Elem().Type()).Elem()
+	val.Set(val.Elem())
+
 	typ := val.Type()
 
 	for i := 0; i < val.NumField(); i++ {

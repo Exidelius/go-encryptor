@@ -57,5 +57,5 @@ func (h *FieldEncryptor) HandleFields(data interface{}, encrypt bool) (interface
 		field.SetString(result)
 	}
 
-	return val.Interface(), nil
+	return val, nil
 }

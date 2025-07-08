@@ -1,7 +1,7 @@
 package interfaces
 
 import (
-	"github.com/GandzyTM/go-encryptor/pkg/config"
+	"github.com/Exidelius/go-encryptor/pkg/config"
 )
 
 // Encryptor определяет интерфейс для шифрования данных
@@ -17,5 +17,5 @@ type EncryptorProvider interface {
 
 // FieldEncryptor определяет интерфейс для шифрования полей в структурах
 type FieldEncryptor interface {
-	HandleFields(data interface{}, encrypt bool) error
+	HandleFields(data interface{}, encrypt bool) (interface{}, error)
 }

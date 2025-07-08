@@ -1,4 +1,4 @@
-module github.com/GandzyTM/go-encryptor
+module github.com/Exidelius/go-encryptor
 
 go 1.21
 

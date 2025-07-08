@@ -7,10 +7,10 @@ import (
 	"os"
 	"strings"
 
-	"github.com/GandzyTM/go-encryptor/pkg/config"
-	"github.com/GandzyTM/go-encryptor/pkg/encryption"
+	"github.com/Exidelius/go-encryptor/pkg/config"
+	"github.com/Exidelius/go-encryptor/pkg/encryption"
 
-	"github.com/GandzyTM/go-encryptor/internal/configfile"
+	"github.com/Exidelius/go-encryptor/internal/configfile"
 )
 
 var (

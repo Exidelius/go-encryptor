@@ -25,13 +25,13 @@ func (h *FieldEncryptor) HandleFields(data interface{}, encrypt bool) (interface
 		return nil, interfaces.ErrInvalidData
 	}
 
-	val = reflect.New(val.Elem().Type()).Elem()
-	val.Set(val.Elem())
+	newVal := reflect.New(val.Type())
+	newVal.Set(val.Elem())
 
-	typ := val.Type()
+	typ := newVal.Type()
 
-	for i := 0; i < val.NumField(); i++ {
-		field := val.Field(i)
+	for i := 0; i < newVal.NumField(); i++ {
+		field := newVal.Field(i)
 		fieldType := typ.Field(i)
 
 		// Проверяем тег encrypted
@@ -59,5 +59,5 @@ func (h *FieldEncryptor) HandleFields(data interface{}, encrypt bool) (interface
 		field.SetString(result)
 	}
 
-	return val.Interface(), nil
+	return newVal.Interface(), nil
 }

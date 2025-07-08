@@ -30,15 +30,15 @@ func (h *FieldEncryptor) HandleFields(data interface{}, encrypt bool) (interface
 	newVal.Elem().Set(val.Elem())
 
 	// Обрабатываем поля
-	if err := h.processStruct(newVal.Elem(), encrypt); err != nil {
+	if err := h.ProcessStruct(newVal.Elem(), encrypt); err != nil {
 		return nil, err
 	}
 
 	return newVal.Elem().Interface(), nil
 }
 
-// Рекурсивная функция обработки структуры
-func (h *FieldEncryptor) processStruct(v reflect.Value, encrypt bool) error {
+// ProcessStruct рекурсивная обработка структур
+func (h *FieldEncryptor) ProcessStruct(v reflect.Value, encrypt bool) error {
 	typ := v.Type()
 
 	for i := 0; i < v.NumField(); i++ {
@@ -47,7 +47,7 @@ func (h *FieldEncryptor) processStruct(v reflect.Value, encrypt bool) error {
 
 		// Обработка вложенных структур
 		if field.Kind() == reflect.Struct {
-			if err := h.processStruct(field, encrypt); err != nil {
+			if err := h.ProcessStruct(field, encrypt); err != nil {
 				return err
 			}
 			continue
@@ -58,7 +58,7 @@ func (h *FieldEncryptor) processStruct(v reflect.Value, encrypt bool) error {
 			if field.IsNil() {
 				continue // Пропускаем nil-указатели
 			}
-			if err := h.processStruct(field.Elem(), encrypt); err != nil {
+			if err := h.ProcessStruct(field.Elem(), encrypt); err != nil {
 				return err
 			}
 			continue

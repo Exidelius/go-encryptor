@@ -29,12 +29,14 @@ func (h *FieldEncryptor) HandleFields(data interface{}, encrypt bool) (interface
 	newVal := reflect.New(val.Elem().Type())
 	newVal.Elem().Set(val.Elem())
 
-	typ := val.Type()
+	typ := newVal.Elem().Type()
 
 	for i := 0; i < newVal.Elem().NumField(); i++ {
 		field := newVal.Elem().Field(i)
 		fieldType := typ.Field(i)
 
+		slog.Info(fieldType.Name)
+		slog.Info(fieldType.Type.Name())
 		slog.Info(fieldType.Tag.Get("encrypted"))
 		// Проверяем тег encrypted
 		if fieldType.Tag.Get("encrypted") != "true" {

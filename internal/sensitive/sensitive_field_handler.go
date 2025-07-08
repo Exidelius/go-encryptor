@@ -19,10 +19,10 @@ func NewFieldEncryptor(encryptor interfaces.Encryptor) *FieldEncryptor {
 }
 
 // HandleFields обрабатывает поля структуры, шифруя или расшифровывая их
-func (h *FieldEncryptor) HandleFields(data interface{}, encrypt bool) error {
+func (h *FieldEncryptor) HandleFields(data interface{}, encrypt bool) (interface{}, error) {
 	val := reflect.ValueOf(data)
 	if val.Kind() != reflect.Ptr || val.Elem().Kind() != reflect.Struct {
-		return interfaces.ErrInvalidData
+		return nil, interfaces.ErrInvalidData
 	}
 
 	val = val.Elem()
@@ -33,28 +33,29 @@ func (h *FieldEncryptor) HandleFields(data interface{}, encrypt bool) error {
 		fieldType := typ.Field(i)
 
 		// Проверяем тег encrypted
-		if fieldType.Tag.Get("encrypted") == "true" {
-			if field.Kind() != reflect.String {
-				continue
-			}
-
-			value := field.String()
-			var result string
-			var err error
-
-			if encrypt {
-				result, err = h.encryptor.Encrypt(value)
-			} else {
-				result, err = h.encryptor.Decrypt(value)
-			}
-
-			if err != nil {
-				return err
-			}
-
-			field.SetString(result)
+		if fieldType.Tag.Get("encrypted") != "true" {
+			continue
 		}
+		if field.Kind() != reflect.String {
+			continue
+		}
+
+		value := field.String()
+		var result string
+		var err error
+
+		if encrypt {
+			result, err = h.encryptor.Encrypt(value)
+		} else {
+			result, err = h.encryptor.Decrypt(value)
+		}
+
+		if err != nil {
+			return nil, err
+		}
+
+		field.SetString(result)
 	}
 
-	return nil
+	return val.Interface(), nil
 }

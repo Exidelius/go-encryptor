@@ -1,7 +1,6 @@
 package sensitive
 
 import (
-	"log/slog"
 	"reflect"
 
 	"github.com/Exidelius/go-encryptor/internal/interfaces"
@@ -35,18 +34,22 @@ func (h *FieldEncryptor) HandleFields(data interface{}, encrypt bool) (interface
 		field := newVal.Elem().Field(i)
 		fieldType := typ.Field(i)
 
-		slog.Info(fieldType.Name)
-		slog.Info(fieldType.Type.Name())
-		slog.Info(fieldType.Tag.Get("encrypted"))
-		// Проверяем тег encrypted
-		if fieldType.Tag.Get("encrypted") != "true" {
-			continue
-		}
-		if field.Kind() != reflect.String {
+		if field.Kind() == reflect.Struct {
+			innerStruct, err := h.HandleFields(field.Interface(), encrypt)
+			if err != nil {
+				return nil, err
+			}
+			field.Set(reflect.ValueOf(innerStruct))
 			continue
 		}
 
-		slog.Info("Мы тут бываем, да")
+		if field.Kind() != reflect.String {
+			continue
+		}
+		if fieldType.Tag.Get("encrypted") != "true" {
+			continue
+		}
+
 		value := field.String()
 		var result string
 		var err error
@@ -61,7 +64,6 @@ func (h *FieldEncryptor) HandleFields(data interface{}, encrypt bool) (interface
 			return nil, err
 		}
 
-		slog.Info(result)
 		field.SetString(result)
 	}
 
